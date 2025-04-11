@@ -12,25 +12,24 @@ from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 SIGNAL_CSV = "analysis/sentiment_results.csv"
 TOP_N = 5
 
-def save_sentiments_to_csv(filename, results):
-    fieldnames = ['date', 'stock', 'sentiment_score', 'sentiment_label', 'source', 'snippet']
-    with open(filename, 'a', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+def save_signals_to_csv(signals, filename="signals.csv"):
+    with open(filename, "a", newline="") as f:
+        writer = csv.writer(f)
+        
+        # Optional: write header only if file is empty
+        if f.tell() == 0:
+            writer.writerow(["Date", "Type", "Stock", "Sentiment", "Source", "Snippet"])
+        
+        for s in signals:
+            writer.writerow([
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                s["type"],        # 'Bullish' or 'Bearish'
+                s["stock"],       # e.g. 'HDFCBANK'
+                s["sentiment"],   # e.g. 0.957
+                s["source"],      # e.g. 'google' or 'reddit'
+                s["text"]         # News or post text
+            ])
 
-        # Write header only if file is empty
-        f.seek(0)
-        if not f.read(1):
-            writer.writeheader()
-
-        for item in results:
-            writer.writerow({
-                'date': datetime.utcnow().date(),
-                'stock': item['stock'],
-                'sentiment_score': item['score'],
-                'sentiment_label': item['label'],
-                'source': item['source'],
-                'snippet': item['text']
-            })
 
 def get_top_sentiment(df, sentiment_type, top_n):
     df = df[
@@ -73,7 +72,7 @@ async def send_telegram_message():
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=final_message, parse_mode=ParseMode.MARKDOWN)
         print("Message sent to Telegram.")
-        save_sentiments_to_csv("analysis/daily_sentiment_log.csv", bullish_df + bearish_df)
+        save_signals_to_csv("analysis/daily_sentiment_log.csv", bullish_df + bearish_df)
         print("Sentiment results saved to daily_sentiment_log.csv.")
 
     else:
