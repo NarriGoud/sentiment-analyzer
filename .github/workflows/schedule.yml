@@ -1,0 +1,30 @@
+name: Run sentiment analyzer daily
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # Runs every day at 6:00 AM UTC
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run main.py
+      run: python main.py
+
+    - name: Done!
+      run: echo "Script executed successfully ✅"
