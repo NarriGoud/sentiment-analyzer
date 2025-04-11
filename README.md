@@ -14,36 +14,6 @@ A complete end-to-end sentiment analysis pipeline for stock market signals. This
 - Visualize everything with a **Streamlit Dashboard**
 - Easy to plug into a trading bot decision engine
 
-## Project Structure
-
-index+trading_bot/
-├── analysis/
-│   ├── sentiment_analyzer.py
-│   ├── sentiment_results.csv
-│   ├── sentiment_summary.csv
-│   ├── sentiment_summary.py
-│   ├── sentiment_summary_chart.png
-│   └── stock_mapping.json
-│
-├── bot/
-│   ├── discord_bot.py
-│   └── telegram_bot.py
-│
-├── dashboard/
-│   └── streamlit_dashboard.py
-|
-├── scraper/
-│   ├── google_news_scraper.py
-│   ├── reddit_scraper.py
-│   ├── google_news.txt
-│   └── reddit_posts.txt
-│
-├── config.py
-├── main.py
-└── requirements.txt
-
----
-
 ## Setup Instructions
 
 ### 1. Clone the Repository
