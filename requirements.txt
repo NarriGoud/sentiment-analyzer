@@ -1,0 +1,14 @@
+pandas
+matplotlib
+streamlit
+transformers
+torch
+tqdm
+GoogleNews
+praw
+
+# For Telegram Bot
+python-telegram-bot==13.15
+
+# For Discord Bot
+discord.py==2.3.2
