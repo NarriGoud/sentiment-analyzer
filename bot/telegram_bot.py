@@ -73,7 +73,7 @@ async def send_telegram_message():
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=final_message, parse_mode=ParseMode.MARKDOWN)
         print("Message sent to Telegram.")
-        save_sentiments_to_csv("daily_sentiment_log.csv", bullish_df + bearish_df)
+        save_sentiments_to_csv("analysis/daily_sentiment_log.csv", bullish_df + bearish_df)
         print("Sentiment results saved to daily_sentiment_log.csv.")
 
     else:
