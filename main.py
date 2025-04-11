@@ -24,6 +24,13 @@ def run_scrapers():
     print("\nRunning Google News scraper...")
     scrape_google_news(pages_per_keyword=1)
 
+async def run_all_async():
+    print("\nSending signals to Telegram...")
+    await send_telegram_message()
+
+    print("\nSending signals to Discord...")
+    await bot.start(DISCORD_BOT_TOKEN)
+
 def run_all():
     run_scrapers()
 
@@ -33,11 +40,8 @@ def run_all():
     print("\nGenerating sentiment summary...")
     generate_summary()
 
-    print("\nSending signals to Telegram...")
-    asyncio.run(send_telegram_message())
-
-    print("\nSending signals to Discord...")
-    asyncio.run(bot.start(DISCORD_BOT_TOKEN))
+    # Now handle async part cleanly
+    asyncio.run(run_all_async())
 
 if __name__ == "__main__":
     run_all()
