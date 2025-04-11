@@ -2,6 +2,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pandas as pd
+import csv
+from datetime import datetime
 import asyncio
 from telegram import Bot
 from telegram.constants import ParseMode
@@ -9,6 +11,26 @@ from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 SIGNAL_CSV = "analysis/sentiment_results.csv"
 TOP_N = 5
+
+def save_sentiments_to_csv(filename, results):
+    fieldnames = ['date', 'stock', 'sentiment_score', 'sentiment_label', 'source', 'snippet']
+    with open(filename, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+        # Write header only if file is empty
+        f.seek(0)
+        if not f.read(1):
+            writer.writeheader()
+
+        for item in results:
+            writer.writerow({
+                'date': datetime.utcnow().date(),
+                'stock': item['stock'],
+                'sentiment_score': item['score'],
+                'sentiment_label': item['label'],
+                'source': item['source'],
+                'snippet': item['text']
+            })
 
 def get_top_sentiment(df, sentiment_type, top_n):
     df = df[
@@ -51,6 +73,9 @@ async def send_telegram_message():
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=final_message, parse_mode=ParseMode.MARKDOWN)
         print("Message sent to Telegram.")
+        save_sentiments_to_csv("daily_sentiment_log.csv", bullish_df + bearish_df)
+        print("Sentiment results saved to daily_sentiment_log.csv.")
+
     else:
         print("No high-confidence bullish or bearish signals found.")
 
