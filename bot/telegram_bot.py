@@ -3,8 +3,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pandas as pd
 import asyncio
-from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 from telegram import Bot
+from telegram.constants import ParseMode
+from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 SIGNAL_CSV = "analysis/sentiment_results.csv"
 TOP_N = 5
@@ -28,7 +29,11 @@ def format_signals(df, icon):
     return "\n".join(messages)
 
 async def send_telegram_message():
-    df = pd.read_csv(SIGNAL_CSV)
+    try:
+        df = pd.read_csv(SIGNAL_CSV)
+    except FileNotFoundError:
+        print("Sentiment results file not found.")
+        return
 
     bullish_df = get_top_sentiment(df, "positive", TOP_N)
     bearish_df = get_top_sentiment(df, "negative", TOP_N)
@@ -44,7 +49,7 @@ async def send_telegram_message():
     if message_parts:
         final_message = "\n\n".join(message_parts)
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=final_message, parse_mode="Markdown")
+        await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=final_message, parse_mode=ParseMode.MARKDOWN)
         print("Message sent to Telegram.")
     else:
         print("No high-confidence bullish or bearish signals found.")
