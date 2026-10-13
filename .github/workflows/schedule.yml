@@ -1,42 +1,48 @@
-name: Run sentiment analyzer daily
+name: Daily Predictions
 
 on:
   schedule:
-    - cron: "0 6 * * *"  # Runs every day at 6:00 AM UTC
-  workflow_dispatch:  # Allows manual trigger from GitHub UI
+    # 11:00 UTC = 16:30 IST (after market close)
+    - cron: '0 11 * * *'
+  workflow_dispatch:  # Allow manual trigger from Actions tab
 
 jobs:
-  run-script:
+  run-predictions:
     runs-on: ubuntu-latest
-
-    env:
-      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-      DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
-      REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-      REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
-      REDDIT_USER_AGENT: ${{ secrets.REDDIT_USER_AGENT }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Clean pip cache
-        run: pip cache purge
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run main.py
-        run: python main.py
+      - name: Run daily prediction batch
+        env:
+          UPSTASH_REDIS_URL: ${{ secrets.UPSTASH_REDIS_URL }}
+          UPSTASH_REDIS_TOKEN: ${{ secrets.UPSTASH_REDIS_TOKEN }}
+          MARKETMIND_PREDICTION_ENGINE_URL: https://townlink-api-marketmind-engine.hf.space/predict
+          MARKETMIND_USERS_KEY: ${{ secrets.MARKETMIND_USERS_KEY }}
+          MARKETMIND_TOKEN_SECRET: ${{ secrets.MARKETMIND_TOKEN_SECRET }}
+          MARKETMIND_MODE: ${{ secrets.MARKETMIND_MODE }}
+        run: |
+          python -m scripts.run_predictions
 
-      - name: Done!
-        run: echo "Script executed successfully ✅"
+      - name: Upload summary as artifact (for debugging)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prediction-summary
+          path: |
+            *.json
+            *.log
+          retention-days: 7
