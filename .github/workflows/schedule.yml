@@ -1,10 +1,8 @@
-# .github/workflows/daily-predictions.yml
 name: Trigger Daily Predictions
 on:
   schedule:
     - cron: '0 11 * * *'  # 16:30 IST
   workflow_dispatch:
-
 jobs:
   trigger:
     runs-on: ubuntu-latest
@@ -13,5 +11,4 @@ jobs:
         run: |
           curl -X POST "https://marketmind-demo-backend.onrender.com/cron/predictions" \
             -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json" \
-            --max-time 300
+            --max-time 10
