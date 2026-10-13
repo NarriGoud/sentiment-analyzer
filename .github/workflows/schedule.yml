@@ -1,48 +1,17 @@
-name: Daily Predictions
-
+# .github/workflows/daily-predictions.yml
+name: Trigger Daily Predictions
 on:
   schedule:
-    # 11:00 UTC = 16:30 IST (after market close)
-    - cron: '0 11 * * *'
-  workflow_dispatch:  # Allow manual trigger from Actions tab
+    - cron: '0 11 * * *'  # 16:30 IST
+  workflow_dispatch:
 
 jobs:
-  run-predictions:
+  trigger:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install dependencies
+      - name: Trigger prediction batch
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run daily prediction batch
-        env:
-          UPSTASH_REDIS_URL: ${{ secrets.UPSTASH_REDIS_URL }}
-          UPSTASH_REDIS_TOKEN: ${{ secrets.UPSTASH_REDIS_TOKEN }}
-          MARKETMIND_PREDICTION_ENGINE_URL: https://townlink-api-marketmind-engine.hf.space/predict
-          MARKETMIND_USERS_KEY: ${{ secrets.MARKETMIND_USERS_KEY }}
-          MARKETMIND_TOKEN_SECRET: ${{ secrets.MARKETMIND_TOKEN_SECRET }}
-          MARKETMIND_MODE: ${{ secrets.MARKETMIND_MODE }}
-        run: |
-          python -m scripts.run_predictions
-
-      - name: Upload summary as artifact (for debugging)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: prediction-summary
-          path: |
-            *.json
-            *.log
-          retention-days: 7
+          curl -X POST "https://marketmind-demo-backend.onrender.com/cron/predictions" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --max-time 300
